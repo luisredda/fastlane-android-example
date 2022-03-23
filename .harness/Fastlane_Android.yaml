@@ -28,7 +28,7 @@ pipeline:
                                           image: luisredda/docker-android-fastlane
                                           command: |
                                               #export JAVA_HOME="/usr/local/openjdk-11"
-                                              ls /usr/local
+                                              ls /usr/local/android-sdk-linux
                                               cd sample
                                               ls -ll
                                               chmod +x gradlew
