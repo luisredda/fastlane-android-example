@@ -32,7 +32,7 @@ pipeline:
                                               cd sample
                                               ls -ll
                                               chmod +x gradlew
-                                              bash gradlew build
+                                              #bash gradlew build
                                           privileged: false
                                           imagePullPolicy: Always
                                 - step:
