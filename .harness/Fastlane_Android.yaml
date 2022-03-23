@@ -1,0 +1,101 @@
+pipeline:
+    name: Fastlane Android
+    identifier: Fastlane_Android
+    projectIdentifier: Mobile
+    orgIdentifier: default
+    tags: {}
+    stages:
+        - stage:
+              name: Build Android
+              identifier: Build_Android
+              type: CI
+              spec:
+                  cloneCodebase: true
+                  infrastructure:
+                      type: KubernetesDirect
+                      spec:
+                          connectorRef: account.LATAM_SE
+                          namespace: harness-delegate
+                  execution:
+                      steps:
+                          - parallel:
+                                - step:
+                                      type: Run
+                                      name: Build
+                                      identifier: Build
+                                      spec:
+                                          connectorRef: account.DockerHubDiego
+                                          image: luisredda/docker-android-fastlane
+                                          command: |
+                                              #export JAVA_HOME="/usr/local/openjdk-11"
+                                              ls /usr/local
+                                              cd sample
+                                              ls -ll
+                                              chmod +x gradlew
+                                              bash gradlew build
+                                          privileged: false
+                                          imagePullPolicy: Always
+                                - step:
+                                      type: Run
+                                      name: FastLane Alpha
+                                      identifier: FastLane_Tests
+                                      spec:
+                                          connectorRef: account.DockerHubDiego
+                                          image: luisredda/docker-android-fastlane
+                                          command: |-
+                                              #sudo apt install openjdk-8-jre-headless 
+                                              export JAVA_HOME="/usr/local/openjdk-8"
+                                              cd sample
+                                              #sudo gem install fastlane
+                                              #fastlane build
+                                              fastlane android alpha
+                                          privileged: false
+                                          envVariables:
+                                              JAVA_HOME: /usr/lib/jvm/java-8-openjdk-amd64/jre
+                                          imagePullPolicy: Always
+                          - step:
+                                type: Run
+                                name: FastLane Beta
+                                identifier: FastLane_Beta
+                                spec:
+                                    connectorRef: account.DockerHubDiego
+                                    image: softartdev/android-fastlane
+                                    command: |-
+                                        cd sample
+                                        fastlane beta
+                                        ls -ll
+                                    privileged: false
+        - stage:
+              name: Build iOS
+              identifier: Drone_Plugin
+              type: CI
+              spec:
+                  cloneCodebase: false
+                  execution:
+                      steps:
+                          - step:
+                                type: Plugin
+                                name: SSH Build
+                                identifier: SSH_Build
+                                spec:
+                                    connectorRef: account.DockerHubDiego
+                                    image: appleboy/drone-ssh
+                                    privileged: false
+                                    settings:
+                                        host: 3.19.222.173
+                                        username: ec2-user
+                                        port: "22"
+                                        key: <+secrets.getValue("ec2ssh")>
+                                        script: mkdir assets
+                                    imagePullPolicy: IfNotPresent
+                  infrastructure:
+                      type: KubernetesDirect
+                      spec:
+                          connectorRef: account.ProdGKE
+                          namespace: harness-delegate
+    properties:
+        ci:
+            codebase:
+                connectorRef: account.lrgithub
+                repoName: fastlane-android-example
+                build: <+input>
