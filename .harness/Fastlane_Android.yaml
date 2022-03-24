@@ -18,22 +18,31 @@ pipeline:
                           namespace: harness-delegate
                   execution:
                       steps:
-                          - step:
-                                type: Run
-                                name: FastLane Alpha
-                                identifier: FastLane_Tests
-                                spec:
-                                    connectorRef: account.DockerHubDiego
-                                    image: luisredda/docker-android-fastlane
-                                    command: |-
-                                        #sudo apt install openjdk-8-jre-headless 
-                                        export JAVA_HOME="/usr/local/openjdk-8"
-                                        cd sample
-                                        #sudo gem install fastlane
-                                        #fastlane build
-                                        fastlane android alpha
-                                    privileged: false
-                                    imagePullPolicy: IfNotPresent
+                          - parallel:
+                                - step:
+                                      type: Run
+                                      name: FastLane Alpha
+                                      identifier: FastLane_Tests
+                                      spec:
+                                          connectorRef: account.DockerHubDiego
+                                          image: luisredda/docker-android-fastlane
+                                          command: |-
+                                              #sudo apt install openjdk-8-jre-headless 
+                                              export JAVA_HOME="/usr/local/openjdk-8"
+                                              cd sample
+                                              #sudo gem install fastlane
+                                              #fastlane build
+                                              fastlane android alpha
+                                          privileged: false
+                                          imagePullPolicy: IfNotPresent
+                                - step:
+                                      type: Run
+                                      name: Forbidden
+                                      identifier: Forbidden
+                                      spec:
+                                          connectorRef: account.DockerDC
+                                          image: nginx
+                                          command: echo "block"
                           - step:
                                 type: Run
                                 name: FastLane Beta
