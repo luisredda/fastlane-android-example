@@ -42,7 +42,7 @@ pipeline:
                                       spec:
                                           connectorRef: account.DockerDC
                                           image: nginx
-                                          command: echo "block"
+                                          command: echo bloqueio
                           - step:
                                 type: Run
                                 name: FastLane Beta
